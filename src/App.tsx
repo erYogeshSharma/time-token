@@ -47,7 +47,7 @@ function App() {
     const current_minute_percent = Number((current_minute / 60).toFixed(2));
     const current_hour_with_minute = current_hour + current_minute_percent;
     const hours_used = current_hour_with_minute - start_hour;
-    if (current_hour <= start_hour) {
+    if (current_hour <= start_hour || current_hour >= end_hour) {
       return {
         used_percent: 100,
         color: "danger",
@@ -56,6 +56,9 @@ function App() {
       };
     }
 
+    function round(num: number): number {
+      return Number((Math.round(num * 100) / 100).toFixed(2));
+    }
     const used_time_percentage = (hours_used / total_available_hours) * 100;
 
     let color: Color = "success";
@@ -70,10 +73,10 @@ function App() {
     }
 
     return {
-      used_percent: Number(used_time_percentage.toFixed(2)),
+      used_percent: round(used_time_percentage),
       color: color,
-      hours_left: Number((total_available_hours - hours_used).toFixed(2)),
-      hours_used: hours_used,
+      hours_left: round(total_available_hours - hours_used),
+      hours_used: round(hours_used),
     };
   }
 
