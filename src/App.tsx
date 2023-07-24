@@ -4,6 +4,49 @@ import { useColorScheme } from "@mui/joy/styles";
 import { Box, Stack, Typography, CssVarsProvider, Sheet, CircularProgress, Switch } from "@mui/joy";
 import moment from "moment";
 
+function get_user_percentage_data(props: GET_USED_PERCENTAGE_PROPS): GET_USED_PERCENTAGE_RETURN {
+  const { start_hour, end_hour } = props;
+
+  const current_hour = moment().hour();
+  const current_minute = moment().minute();
+
+  const total_available_hours = end_hour - start_hour;
+  const current_minute_percent = Number((current_minute / 60).toFixed(2));
+  const current_hour_with_minute = current_hour + current_minute_percent;
+  const hours_used = current_hour_with_minute - start_hour;
+  if (current_hour <= start_hour || current_hour >= end_hour) {
+    return {
+      used_percent: 100,
+      color: "danger",
+      hours_left: 0,
+      hours_used: total_available_hours,
+    };
+  }
+
+  function round(num: number): number {
+    return Number((Math.round(num * 100) / 100).toFixed(2));
+  }
+  const used_time_percentage = (hours_used / total_available_hours) * 100;
+
+  let color: Color = "success";
+  if (used_time_percentage <= 100 && used_time_percentage >= 70) {
+    color = "danger";
+  }
+  if (used_time_percentage < 70 && used_time_percentage >= 40) {
+    color = "warning";
+  }
+  if (used_time_percentage < 40 && used_time_percentage >= 0) {
+    color = "success";
+  }
+
+  return {
+    used_percent: round(used_time_percentage),
+    color: color,
+    hours_left: round(total_available_hours - hours_used),
+    hours_used: round(hours_used),
+  };
+}
+
 const ChangeMode = () => {
   const { mode, setMode } = useColorScheme();
 
@@ -31,54 +74,11 @@ type GET_USED_PERCENTAGE_RETURN = {
 function App() {
   const [time, setTime] = useState("");
   const [dailyTimeData, setDailyTimeData] = useState<GET_USED_PERCENTAGE_RETURN>(
-    {} as GET_USED_PERCENTAGE_RETURN
+    get_user_percentage_data({ end_hour: 23, start_hour: 7 })
   );
   const [OfficeTimeData, setOfficeTimeData] = useState<GET_USED_PERCENTAGE_RETURN>(
-    {} as GET_USED_PERCENTAGE_RETURN
+    get_user_percentage_data({ end_hour: 17.5, start_hour: 9 })
   );
-
-  function get_user_percentage_data(props: GET_USED_PERCENTAGE_PROPS): GET_USED_PERCENTAGE_RETURN {
-    const { start_hour, end_hour } = props;
-
-    const current_hour = moment().hour();
-    const current_minute = moment().minute();
-
-    const total_available_hours = end_hour - start_hour;
-    const current_minute_percent = Number((current_minute / 60).toFixed(2));
-    const current_hour_with_minute = current_hour + current_minute_percent;
-    const hours_used = current_hour_with_minute - start_hour;
-    if (current_hour <= start_hour || current_hour >= end_hour) {
-      return {
-        used_percent: 100,
-        color: "danger",
-        hours_left: 0,
-        hours_used: total_available_hours,
-      };
-    }
-
-    function round(num: number): number {
-      return Number((Math.round(num * 100) / 100).toFixed(2));
-    }
-    const used_time_percentage = (hours_used / total_available_hours) * 100;
-
-    let color: Color = "success";
-    if (used_time_percentage <= 100 && used_time_percentage >= 70) {
-      color = "danger";
-    }
-    if (used_time_percentage < 70 && used_time_percentage >= 40) {
-      color = "warning";
-    }
-    if (used_time_percentage < 40 && used_time_percentage >= 0) {
-      color = "success";
-    }
-
-    return {
-      used_percent: round(used_time_percentage),
-      color: color,
-      hours_left: round(total_available_hours - hours_used),
-      hours_used: round(hours_used),
-    };
-  }
 
   useEffect(() => {
     setInterval(() => {
@@ -93,9 +93,7 @@ function App() {
         <Sheet>
           <Stack spacing={2} height="96.6vh" p={2} alignItems="center" justifyContent="center">
             <ChangeMode />
-            <Typography level="h2" color="info">
-              {moment().format("DD MMMM YYYY")}
-            </Typography>
+            <Typography level="h2">{moment().format("DD MMMM YYYY")}</Typography>
 
             <Stack sx={{ position: "relative" }}>
               <CircularProgress
